@@ -1,9 +1,5 @@
 # Changelog
 
-## 2.0.0-beta1
-
-- Nullsafety support
-
 ## 1.3.4
 
 - Add dart json mapper deserialize support
@@ -18,7 +14,7 @@
 
 ## 1.3.1
 
-- Add custom options support to each request
+- Add custom options support to each request  
 - fix [#132](https://github.com/trevorwang/retrofit.dart/issues/132)
 
 ## 1.3.0
@@ -27,7 +23,7 @@
 
 ## 1.2.0
 
-- Add `HttpReponse` to handle original response
+-  Add `HttpReponse` to handle original response
 
 ## 1.1.0
 
@@ -45,18 +41,18 @@
 
 - Added `autoCastResponse` option to `RestApi` and all `Method` annotations (default : `true`)
 - Added `auto_cast_response` to builder options.
-
   - Users can specify this in `build.yaml` as global default
 
     ```yaml
     targets:
       $default:
-        sources: ["lib/**"]
+        sources: ['lib/**']
         builders:
           retrofit_generator|retrofit:
             enabled: true
             options:
               auto_cast_response: true
+
     ```
 
 ## 0.6.2
