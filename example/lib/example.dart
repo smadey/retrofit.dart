@@ -13,11 +13,8 @@ abstract class RestClient {
   factory RestClient(Dio dio, {String baseUrl}) = _RestClient;
 
   @GET("/tags")
-  Future<List<String>> getTags(
-      {@Header("optionalHeader") String optionalHeader});
+  Future<List<String>> getTags();
 
-  @GET("https://httpbin.org/status/204")
-  Future<HttpResponse<void>> reponseWith204();
   @GET("/tags")
   Stream<List<String>> getTagsAsStream();
 
@@ -90,13 +87,13 @@ abstract class RestClient {
   Future<String> postFormData3(
       {@Part(value: "customfiles", contentType: 'application/json')
           List<File> files,
-      @Part(fileName: "abc.txt")
+      @Part()
           File file});
 
   @POST("/post")
   Future<String> postFormData6(
       {@Part(value: "customfiles") List<List<int>> files,
-      @Part(fileName: "abc.txt") List<int> file});
+      @Part() List<int> file});
 
   @POST("/post")
   Future<String> postFormData4(@Part() List<Task> tasks, @Part() File file);
