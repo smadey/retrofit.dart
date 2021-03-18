@@ -1,3 +1,4 @@
+import 'package:dio_http_cache/dio_http_cache.dart';
 import 'mock_adapter.dart';
 import 'package:retrofit/retrofit.dart';
 import 'package:dio/dio.dart' hide Headers;
@@ -8,7 +9,7 @@ part 'example.g.dart';
 abstract class RestClient {
   factory RestClient(Dio dio, {String baseUrl}) = _RestClient;
   @GET('/tags')
-  Future<List<String>> getTags({@DioOptions() Options? options});
+  Future<List<String>> getTags({@DioOptions() options});
 }
 
 void test() {
@@ -22,7 +23,8 @@ void test() {
     print(options.headers);
   }));
   final api = RestClient(dio, baseUrl: MockAdapter.mockBase);
-  api.getTags().then((it) {
+  final options = buildCacheOptions(Duration(days: 10));
+  api.getTags(options: options).then((it) {
     print(it.length);
   });
 }

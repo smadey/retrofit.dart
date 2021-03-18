@@ -6,11 +6,13 @@ import 'package:dio/dio.dart';
 
 @ShouldGenerate(r'''
 class _RestClient implements RestClient {
-  _RestClient(this._dio, {this.baseUrl});
+  _RestClient(this._dio, {this.baseUrl}) {
+    ArgumentError.checkNotNull(_dio, '_dio');
+  }
 
   final Dio _dio;
 
-  String? baseUrl;
+  String baseUrl;
 ''', contains: true)
 @RestApi()
 abstract class RestClient {}
@@ -18,12 +20,14 @@ abstract class RestClient {}
 @ShouldGenerate(r'''
 class _BaseUrl implements BaseUrl {
   _BaseUrl(this._dio, {this.baseUrl}) {
+    ArgumentError.checkNotNull(_dio, '_dio');
     baseUrl ??= 'http://httpbin.org/';
   }
 
   final Dio _dio;
 
-  String? baseUrl;
+  String baseUrl;
+}
 ''', contains: true)
 @RestApi(baseUrl: "http://httpbin.org/")
 abstract class BaseUrl {}
@@ -72,8 +76,10 @@ class CustomConstant {
 }
 
 @ShouldGenerate(
-  r'''Options(
-            method: 'GET',''',
+  r'''
+        options: RequestOptions(
+            method: 'GET',
+''',
   contains: true,
 )
 @RestApi(baseUrl: "https://httpbin.org/")
@@ -83,8 +89,10 @@ abstract class HttpGetTest {
 }
 
 @ShouldGenerate(
-  r'''Options(
-            method: 'POST',''',
+  r'''
+        options: RequestOptions(
+            method: 'POST',
+''',
   contains: true,
 )
 @RestApi(baseUrl: "https://httpbin.org/")
@@ -94,8 +102,10 @@ abstract class HttpPostTest {
 }
 
 @ShouldGenerate(
-  r'''Options(
-            method: 'PUT',''',
+  r'''
+        options: RequestOptions(
+            method: 'PUT',
+''',
   contains: true,
 )
 @RestApi(baseUrl: "https://httpbin.org/")
@@ -105,7 +115,10 @@ abstract class HttpPutTest {
 }
 
 @ShouldGenerate(
-  r'''Options(method: 'DELETE',''',
+  r'''
+        options: RequestOptions(
+            method: 'DELETE',
+''',
   contains: true,
 )
 @RestApi(baseUrl: "https://httpbin.org/")
@@ -115,7 +128,10 @@ abstract class HttpDeleteTest {
 }
 
 @ShouldGenerate(
-  r'''Options(method: 'PATCH',''',
+  r'''
+        options: RequestOptions(
+            method: 'PATCH',
+''',
   contains: true,
 )
 @RestApi(baseUrl: "https://httpbin.org/")
@@ -125,7 +141,9 @@ abstract class HttpPatchTest {
 }
 
 @ShouldGenerate(
-  r"contentType: 'application/x-www-form-urlencoded'",
+  r'''
+    contentType: 'application/x-www-form-urlencoded',
+''',
   contains: true,
 )
 @RestApi(baseUrl: "https://httpbin.org/")
@@ -186,7 +204,7 @@ abstract class UploadFileInfoPartTest {
 
 @ShouldGenerate(
   r'''
-    final value = User.fromJson(_result.data!);
+    final value = User.fromJson(_result.data);
     return value;
 ''',
   contains: true,
@@ -260,7 +278,7 @@ class GenericUserWithoutGenericArgumentFactories<T> implements AbstractUser {
 }
 class JsonSerializable{
   final bool genericArgumentFactories;
-  const JsonSerializable({  required this.genericArgumentFactories,});
+  const JsonSerializable({   this.genericArgumentFactories,});
 }
 
 mixin AbstractUserMixin {
@@ -276,7 +294,7 @@ abstract class AbstractUser with AbstractUserMixin {
 
 @ShouldGenerate(
   r'''
-    final value = _result.data!;
+    final value = _result.data;
     return value;
 ''',
   contains: true,
@@ -290,7 +308,7 @@ abstract class GenericCastBasicType {
 @ShouldGenerate(
   r'''
     final _data = <String, dynamic>{};
-    _data.addAll(user.toJson());
+    _data.addAll(user?.toJson() ?? <String, dynamic>{});
 ''',
   contains: true,
 )
@@ -308,19 +326,6 @@ abstract class TestObjectBody {
   contains: true,
 )
 @RestApi(baseUrl: "https://httpbin.org/")
-abstract class TestObjectBodyNullable {
-  @POST("/users")
-  Future<String> createUser({@Body() User? user});
-}
-
-@ShouldGenerate(
-  r'''
-    final _data = <String, dynamic>{};
-    _data.addAll(user.toJson());
-''',
-  contains: true,
-)
-@RestApi(baseUrl: "https://httpbin.org/")
 abstract class TestAbstractObjectBody {
   @POST("/users")
   Future<String> createUser(@Body() AbstractUser user);
@@ -328,30 +333,9 @@ abstract class TestAbstractObjectBody {
 
 @ShouldGenerate(
   r'''
-    final _data = <String, dynamic>{};
-    _data.addAll(user?.toJson() ?? <String, dynamic>{});
-''',
-  contains: true,
-)
-@RestApi(baseUrl: "https://httpbin.org/")
-abstract class TestAbstractObjectBodyNullable {
-  @POST("/users")
-  Future<String> createUser({@Body() AbstractUser? user});
-}
-
-@ShouldGenerate(
-  r'''
-    final queryParameters = <String, dynamic>{r'u': u.toJson()};
-    queryParameters.addAll(user1.toJson());
-    queryParameters.addAll(user2.toJson());
-''',
-  contains: true,
-)
-@ShouldGenerate(
-  r'''
-    final queryParameters = <String, dynamic>{r'u': u.toJson()};
-    queryParameters.addAll(user3?.toJson() ?? <String, dynamic>{});
-    queryParameters.addAll(user4?.toJson() ?? <String, dynamic>{});
+    final queryParameters = <String, dynamic>{r'u': u?.toJson()};
+    queryParameters.addAll(user1?.toJson() ?? <String, dynamic>{});
+    queryParameters.addAll(user2?.toJson() ?? <String, dynamic>{});
 ''',
   contains: true,
 )
@@ -360,10 +344,6 @@ abstract class TestObjectQueries {
   @POST("/users")
   Future<String> createUser(
       @Query('u') User u, @Queries() User user1, @Queries() User user2);
-
-  @POST("/users")
-  Future<String> createNullableUser(
-      @Query('u') User u, {@Queries() User? user3, @Queries() User? user4});
 }
 
 class CustomObject {
@@ -389,7 +369,7 @@ abstract class TestCustomObjectBody {
 
 @ShouldGenerate(
   r'''
-    var value = _result.data!.map((k, dynamic v) => MapEntry(
+    var value = _result.data.map((k, dynamic v) => MapEntry(
         k,
         (v as List)
             .map((i) => User.fromJson(i as Map<String, dynamic>))
@@ -406,7 +386,7 @@ abstract class TestMapBody {
 
 @ShouldGenerate(
   r'''
-    var value = _result.data!.map((k, dynamic v) =>
+    var value = _result.data.map((k, dynamic v) =>
         MapEntry(k, User.fromJson(v as Map<String, dynamic>)));
 ''',
   contains: true,
@@ -419,7 +399,7 @@ abstract class TestMapBody2 {
 
 @ShouldGenerate(
   r'''
-    final value = _result.data!.cast<String>();
+    final value = _result.data.cast<String>();
     return value;
 ''',
   contains: true,
@@ -432,7 +412,7 @@ abstract class TestBasicListString {
 
 @ShouldGenerate(
   r'''
-    final value = _result.data!.cast<bool>();
+    final value = _result.data.cast<bool>();
     return value;
 ''',
   contains: true,
@@ -445,7 +425,7 @@ abstract class TestBasicListBool {
 
 @ShouldGenerate(
   r'''
-    final value = _result.data!.cast<int>();
+    final value = _result.data.cast<int>();
     return value;
 ''',
   contains: true,
@@ -458,7 +438,7 @@ abstract class TestBasicListInt {
 
 @ShouldGenerate(
   r'''
-    final value = _result.data!.cast<double>();
+    final value = _result.data.cast<double>();
     return value;
 ''',
   contains: true,
@@ -502,14 +482,20 @@ abstract class TestReceiveProgress {
       @Body() User user, @ReceiveProgress() ProgressCallback onReceiveProgress);
 }
 
-@ShouldGenerate(r'''Options(method: 'HEAD',''', contains: true)
+@ShouldGenerate(r'''
+        options: RequestOptions(
+            method: 'HEAD',
+''', contains: true)
 @RestApi(baseUrl: "https://httpbin.org/")
 abstract class TestHeadMethod {
   @HEAD("/")
   Future<String> testHeadMethod();
 }
 
-@ShouldGenerate(r'''Options(method: 'OPTIONS',''', contains: true)
+@ShouldGenerate(r'''
+        options: RequestOptions(
+            method: 'OPTIONS',
+''', contains: true)
 @RestApi(baseUrl: "https://httpbin.org/")
 abstract class TestOptionsMethod {
   @OPTIONS("/")
@@ -545,7 +531,7 @@ abstract class TestHttpResponseArray {
 
 @ShouldGenerate(r'''
     final _data = FormData();
-    _data.files.addAll(files.map((i) => MapEntry(
+    _data.files.addAll(files?.map((i) => MapEntry(
         'files',
         MultipartFile.fromFileSync(
           i.path,
@@ -575,10 +561,10 @@ abstract class TestFileList {
 ''', contains: true)
 @ShouldGenerate(r'''
     final _data = FormData();
-    _data.fields.add(MapEntry('item', jsonEncode(user)));
+    _data.fields.add(MapEntry('item', jsonEncode(user ?? <String, dynamic>{})));
     ''', contains: true)
 @ShouldGenerate(r'''
-    mapList.forEach((i) {
+    mapList?.forEach((i) {
       _data.fields.add(MapEntry('mapList', jsonEncode(i)));
     });
     ''', contains: true)
@@ -587,9 +573,15 @@ abstract class TestFileList {
     _data.fields.add(MapEntry('map', jsonEncode(map)));
 ''', contains: true)
 @ShouldGenerate(r'''
-    _data.fields.add(MapEntry('a', a.toString()));
-    _data.fields.add(MapEntry('b', b.toString()));
-    _data.fields.add(MapEntry('c', c.toString()));
+    if (a != null) {
+      _data.fields.add(MapEntry('a', a.toString()));
+    }
+    if (b != null) {
+      _data.fields.add(MapEntry('b', b.toString()));
+    }
+    if (c != null) {
+      _data.fields.add(MapEntry('c', c.toString()));
+    }
     if (d != null) {
       _data.fields.add(MapEntry('d', d));
     }
@@ -613,19 +605,17 @@ abstract class TestModelList {
     @Part() int a,
     @Part() bool b,
     @Part() double c,
-    {
-    @Part() String? d,
-    }
+    @Part() String d,
   );
 }
 
 @ShouldGenerate(r'''
-  RequestOptions newRequestOptions(Options? options) {
+  RequestOptions newRequestOptions(Options options) {
     if (options is RequestOptions) {
-      return options as RequestOptions;
+      return options;
     }
     if (options == null) {
-      return RequestOptions(path: '');
+      return RequestOptions();
     }
     return RequestOptions(
       method: options.method,
@@ -641,7 +631,6 @@ abstract class TestModelList {
       maxRedirects: options.maxRedirects,
       requestEncoder: options.requestEncoder,
       responseDecoder: options.responseDecoder,
-      path: '',
     );
   }
 ''', contains: true)
@@ -649,22 +638,20 @@ abstract class TestModelList {
     final newOptions = newRequestOptions(options);
     newOptions.extra.addAll(_extra);
     newOptions.headers.addAll(<String, dynamic>{});
-    await _dio.fetch<void>(newOptions.copyWith(
-        method: 'GET',
-        baseUrl: baseUrl,
+    await _dio.request<void>('',
         queryParameters: queryParameters,
-        path: '')
-      ..data = _data);
+        options: newOptions.merge(method: 'GET', baseUrl: baseUrl),
+        data: _data);
     ''', contains: true)
 @RestApi()
-abstract class CustomOptions {
+abstract class CustonOptions {
   @GET("")
   Future<void> testOptions(@DioOptions() Options options);
 }
 
 @ShouldGenerate(
   r'''
-    final value = JsonMapper.deserialize<User>(_result.data!);
+    final value = JsonMapper.deserialize<User>(_result.data);
     return value;
 ''',
   contains: true,
@@ -680,7 +667,7 @@ abstract class JsonMapperGenericCast {
 
 @ShouldGenerate(
   r'''
-    var value = _result.data!
+    var value = _result.data
         .map((dynamic i) =>
             JsonMapper.deserialize<User>(i as Map<String, dynamic>))
         .toList();
@@ -698,7 +685,7 @@ abstract class JsonMapperTestListBody {
 
 @ShouldGenerate(
   r'''
-    var value = _result.data!.map((k, dynamic v) => MapEntry(
+    var value = _result.data.map((k, dynamic v) => MapEntry(
         k,
         (v as List)
             .map((i) => JsonMapper.deserialize<User>(i as Map<String, dynamic>))
@@ -718,7 +705,7 @@ abstract class JsonMapperTestMapBody {
 
 @ShouldGenerate(
   r'''
-    var value = _result.data!.map((k, dynamic v) =>
+    var value = _result.data.map((k, dynamic v) =>
         MapEntry(k, JsonMapper.deserialize<User>(v as Map<String, dynamic>)));
 ''',
   contains: true,
@@ -734,7 +721,7 @@ abstract class JsonMapperTestMapBody2 {
 
 @ShouldGenerate(
   r'''
-    final value = User.fromMap(_result.data!);
+    final value = User.fromMap(_result.data);
     return value;
 ''',
   contains: true,
@@ -750,7 +737,7 @@ abstract class MapSerializableGenericCast {
 
 @ShouldGenerate(
   r'''
-    var value = _result.data!
+    var value = _result.data
         .map((dynamic i) => User.fromMap(i as Map<String, dynamic>))
         .toList();
 ''',
@@ -767,7 +754,7 @@ abstract class MapSerializableTestListBody {
 
 @ShouldGenerate(
   r'''
-    var value = _result.data!.map((k, dynamic v) => MapEntry(
+    var value = _result.data.map((k, dynamic v) => MapEntry(
         k,
         (v as List)
             .map((i) => User.fromMap(i as Map<String, dynamic>))
@@ -787,7 +774,7 @@ abstract class MapSerializableTestMapBody {
 
 @ShouldGenerate(
   r'''
-    var value = _result.data!.map(
+    var value = _result.data.map(
         (k, dynamic v) => MapEntry(k, User.fromMap(v as Map<String, dynamic>)));
 ''',
   contains: true,
@@ -804,8 +791,8 @@ abstract class MapSerializableTestMapBody2 {
 @ShouldGenerate(
     r'''
     final _data = str;
-    await _dio.fetch<void>(_setStreamType<void>(
-        Options(''',
+    await _dio.request<void>('/',
+  ''',
     contains: true,
     expectedLogItems: [
       "String must provide a `toJson()` method which return a Map.\n"
@@ -820,8 +807,8 @@ abstract class NonJsonSerializableBodyShouldNotBeCleanTest {
 @ShouldGenerate(
   r'''
     final _data = users.map((e) => e.toJson()).toList();
-    await _dio.fetch<void>(_setStreamType<void>(
-        Options(''',
+    await _dio.request<void>('/',
+  ''',
   contains: true,
 )
 @RestApi()
@@ -833,7 +820,7 @@ abstract class ListBodyShouldNotBeCleanTest {
 @ShouldGenerate(
   r'''
     final value = GenericUser<dynamic>.fromJson(
-      _result.data!,
+      _result.data,
       (json) => json as dynamic,
     );
   ''',
@@ -848,7 +835,7 @@ abstract class DynamicInnerGenericTypeShouldBeCastedAsDynamic {
 @ShouldGenerate(
   r'''
     final value = GenericUser<List<User>>.fromJson(
-        _result.data!,
+        _result.data,
         (json) => (json as List<dynamic>)
             .map<User>((i) => User.fromJson(i as Map<String, dynamic>))
             .toList());
@@ -864,7 +851,7 @@ abstract class DynamicInnerListGenericTypeShouldBeCastedRecursively {
 @ShouldGenerate(
   r'''
     final value = GenericUser<List<double>>.fromJson(
-        _result.data!,
+        _result.data,
         (json) =>
             (json as List<dynamic>).map<double>((i) => i as double).toList());
   ''',
@@ -879,7 +866,7 @@ abstract class DynamicInnerListGenericPrimitiveTypeShouldBeCastedRecursively {
 @ShouldGenerate(
   r'''
     final value = GenericUserWithoutGenericArgumentFactories<dynamic>.fromJson(
-        _result.data!);
+        _result.data);
   ''',
   contains: true,
 )
