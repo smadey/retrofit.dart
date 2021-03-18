@@ -591,15 +591,11 @@ class RetrofitGenerator extends GeneratorForAnnotation<retrofit.RestApi> {
                   "final value = ${_displayString(returnType)}.fromMap($_resultVar.data);"));
               break;
             case retrofit.Parser.JsonSerializable:
-              final genericArgumentFactories = isGenericArgumentFactories(returnType);
-
-              // print('genericArgumentFactories:$genericArgumentFactories');
               var typeArgs = returnType is ParameterizedType
                   ? returnType.typeArguments
                   : [];
               var mapperVal;
-
-              if (typeArgs.length > 0 && genericArgumentFactories) {
+              if (typeArgs.length > 0) {
                 mapperVal =
                     "final value = ${_displayString(returnType)}.fromJson($_resultVar.data,${_getInnerJsonSerializableMapperFn(returnType)});";
               } else {
@@ -628,35 +624,17 @@ class RetrofitGenerator extends GeneratorForAnnotation<retrofit.RestApi> {
     return Block.of(blocks);
   }
 
-  bool isGenericArgumentFactories(DartType dartType){
-    final metaData = dartType?.element?.metadata;
-    final constDartObj = metaData.isNotEmpty ? metaData.first.computeConstantValue():null;
-    var genericArgumentFactories = false;
-    if (constDartObj != null && (!_typeChecker(List).isExactlyType(dartType) &&
-        !_typeChecker(BuiltList).isExactlyType(dartType))){
-      try{
-          final annotation = ConstantReader(constDartObj);
-          final obj =  (annotation?.peek('genericArgumentFactories'));
-          genericArgumentFactories = obj?.boolValue ?? false;
-      } catch (e) { }
-    }
-
-    return genericArgumentFactories;
-  }
-
   String _getInnerJsonSerializableMapperFn(DartType dartType) {
-
     var typeArgs = dartType is ParameterizedType ? dartType.typeArguments : [];
-    if (typeArgs.length > 0 ) {
+    if (typeArgs.length > 0) {
       if (_typeChecker(List).isExactlyType(dartType) ||
           _typeChecker(BuiltList).isExactlyType(dartType)) {
         var genericType = _getResponseType(dartType);
         var typeArgs = genericType is ParameterizedType ? genericType.typeArguments : [];
         var mapperVal;
-
         var genericTypeString = "${_displayString(genericType)}";
 
-        if (typeArgs.length > 0 && isGenericArgumentFactories(genericType)) {
+        if (typeArgs.length > 0) {
           mapperVal = """
     (json)=> (json as List<dynamic>)
             .map<${genericTypeString}>((i) => ${genericTypeString}.fromJson(
@@ -692,15 +670,12 @@ class RetrofitGenerator extends GeneratorForAnnotation<retrofit.RestApi> {
           var typeArgs = arg is ParameterizedType
               ? arg.typeArguments
               : [];
-          if (typeArgs.length > 0 )
+          if (typeArgs.length > 0)
             if (_typeChecker(List).isExactlyType(arg) ||
                 _typeChecker(BuiltList).isExactlyType(arg)) {
               mappedVal += "${_getInnerJsonSerializableMapperFn(arg)}";
             }else{
-              if (isGenericArgumentFactories(arg))
               mappedVal += "(json)=>${_displayString(arg)}.fromJson(json,${_getInnerJsonSerializableMapperFn(arg)}),";
-              else
-                mappedVal += "(json)=>${_displayString(arg)}.fromJson(json),";
             }
           else{
             mappedVal += "${_getInnerJsonSerializableMapperFn(arg)}";
